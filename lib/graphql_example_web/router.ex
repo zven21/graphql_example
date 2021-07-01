@@ -14,6 +14,19 @@ defmodule GraphqlExampleWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
+    plug :fetch_current_user
+  end
+
+  scope "/api" do
+    pipe_through :api
+
+    forward "/graphiql", Absinthe.Plug.GraphiQL,
+      schema: GraphqlExampleWeb.Schema,
+      json_codec: Jason,
+      interface: :playground
+
+    forward "/", Absinthe.Plug, schema: GraphqlExampleWeb.Schema
   end
 
   scope "/", GraphqlExampleWeb do
@@ -74,4 +87,7 @@ defmodule GraphqlExampleWeb.Router do
     post "/users/confirm", UserConfirmationController, :create
     get "/users/confirm/:token", UserConfirmationController, :confirm
   end
+
+
+
 end

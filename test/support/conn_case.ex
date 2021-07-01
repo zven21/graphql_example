@@ -24,6 +24,8 @@ defmodule GraphqlExampleWeb.ConnCase do
       import Phoenix.ConnTest
       import GraphqlExampleWeb.ConnCase
 
+      import GraphqlExample.Factory
+
       alias GraphqlExampleWeb.Router.Helpers, as: Routes
 
       # The default endpoint for testing
@@ -38,7 +40,26 @@ defmodule GraphqlExampleWeb.ConnCase do
       Ecto.Adapters.SQL.Sandbox.mode(GraphqlExample.Repo, {:shared, self()})
     end
 
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
+    user =
+      cond do
+        tags[:as_user] ->
+          GraphqlExample.Factory.insert(:user, id: 1)
+
+        true ->
+          nil
+      end
+
+    conn =
+      if is_nil(user) do
+        Phoenix.ConnTest.build_conn()
+      else
+        token = GraphqlExample.Accounts.generate_user_session_token(user)
+
+        Phoenix.ConnTest.build_conn()
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> token)
+      end
+
+    {:ok, conn: conn, user: user}
   end
 
   @doc """

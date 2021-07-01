@@ -6,6 +6,7 @@ defmodule GraphqlExample.CMS do
   import Ecto.Query, warn: false
   alias GraphqlExample.Repo
 
+  alias GraphqlExample.Turbo
   alias GraphqlExample.CMS.Post
 
   @doc """
@@ -36,6 +37,11 @@ defmodule GraphqlExample.CMS do
 
   """
   def get_post!(id), do: Repo.get!(Post, id)
+
+  @doc """
+  Get Post
+  """
+  def find_post(id), do: Turbo.get(Post, id)
 
   @doc """
   Creates a post.

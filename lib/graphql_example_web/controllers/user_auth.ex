@@ -90,8 +90,12 @@ defmodule GraphqlExampleWeb.UserAuth do
   """
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
+
     user = user_token && Accounts.get_user_by_session_token(user_token)
-    assign(conn, :current_user, user)
+
+    conn
+    |> assign(:current_user, user)
+    |> put_private(:absinthe, %{context: %{current_user: user}})
   end
 
   defp ensure_user_token(conn) do
@@ -103,7 +107,11 @@ defmodule GraphqlExampleWeb.UserAuth do
       if user_token = conn.cookies[@remember_me_cookie] do
         {user_token, put_session(conn, :user_token, user_token)}
       else
-        {nil, conn}
+        with ["Bearer " <> user_token] <- get_req_header(conn, "authorization") do
+          {user_token, conn}
+        else
+          _ -> {nil, conn}
+        end
       end
     end
   end
